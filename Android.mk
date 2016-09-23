@@ -25,12 +25,31 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
-LOCAL_CFLAGS += -DQEMU_HARDWARE
 LOCAL_SHARED_LIBRARIES := liblog libcutils libhardware
-LOCAL_SRC_FILES := gps_goby.c
-ifeq ($(TARGET_PRODUCT),vbox_x86)
-LOCAL_MODULE := gps.vbox_x86
-else
-LOCAL_MODULE := gps.goldfish
-endif
+LOCAL_CFLAGS := -O2 -fpermissive -Wmissing-field-initializers
+LOCAL_SRC_FILES := gps_goby.cpp
+LOCAL_MODULE := gps.goby
+LOCAL_MODULE_TAGS := debug
+
 include $(BUILD_SHARED_LIBRARY)
+#############################################
+include $(CLEAR_VARS)
+
+LOCAL_SRC_FILES := local_gps.cpp
+LOCAL_PBUF_INTERMEDIATES := $(call intermediates-dir-for,SHARED_LIBRARIES,libcppsensors_packet,,)/proto/external/aic/libaicd/
+
+LOCAL_C_INCLUDES	:= bionic \
+				   external/stlport/stlport \
+				   external/aic/libaicd \
+				   external/protobuf/src \
+				   $(LOCAL_PBUF_INTERMEDIATES)
+
+IGNORED_WARNINGS := -Wno-sign-compare -Wno-unused-parameter -Wno-sign-promo -Wno-error=return-type
+LOCAL_CFLAGS := -O2 -fpermissive -Wmissing-field-initializers -DGOOGLE_PROTOBUF_NO_RTTI
+
+LOCAL_MODULE := local_gps
+LOCAL_SHARED_LIBRARIES := liblog libcutils libstlport libcppsensors_packet
+LOCAL_STATIC_LIBRARIES += libprotobuf-cpp-2.3.0-lite libprotobuf-cpp-2.3.0-full
+LOCAL_MODULE_TAGS := optional
+
+include $(BUILD_EXECUTABLE)
